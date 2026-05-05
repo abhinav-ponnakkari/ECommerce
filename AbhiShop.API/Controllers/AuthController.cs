@@ -15,11 +15,16 @@ public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ITokenService _tokenService;
+    private readonly IOtpService _otpService;
+    private readonly IWebHostEnvironment _env;
 
-    public AuthController(AppDbContext context, ITokenService tokenService)
+    public AuthController(AppDbContext context, ITokenService tokenService,
+        IOtpService otpService, IWebHostEnvironment env)
     {
         _context = context;
         _tokenService = tokenService;
+        _otpService = otpService;
+        _env = env;
     }
 
     [HttpPost("register")]
@@ -112,6 +117,72 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Password updated successfully." });
+    }
+
+    // ── OTP ──────────────────────────────────────────────────────────────
+
+    [HttpPost("send-otp")]
+    public async Task<ActionResult<SendOtpResponseDto>> SendOtp(SendOtpDto dto)
+    {
+        var phone = dto.PhoneNumber.Trim();
+
+        // Phone must belong to a registered account
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone);
+        if (user == null)
+            return NotFound(new { message = "No account found with this mobile number. Please register first." });
+
+        if (!user.IsActive)
+            return Unauthorized(new { message = "Your account has been deactivated." });
+
+        try
+        {
+            var code = await _otpService.GenerateAndSaveAsync(phone);
+            await _otpService.SendSmsAsync(phone, code);
+
+            var response = new SendOtpResponseDto
+            {
+                Success = true,
+                Message = $"OTP sent to {MaskPhone(phone)}",
+                ExpiresInSeconds = 120,
+            };
+
+            // Return the OTP in the response body only in Development
+            if (_env.IsDevelopment())
+                response.DevOtp = code;
+
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("verify-otp")]
+    public async Task<ActionResult<AuthResponseDto>> VerifyOtp(VerifyOtpDto dto)
+    {
+        var phone = dto.PhoneNumber.Trim();
+        var valid = await _otpService.VerifyAsync(phone, dto.Code.Trim());
+
+        if (!valid)
+            return BadRequest(new { message = "Invalid or expired OTP. Please try again." });
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone);
+        if (user == null) return NotFound();
+
+        return Ok(new AuthResponseDto
+        {
+            Token = _tokenService.GenerateToken(user),
+            User = MapToUserDto(user)
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+
+    private static string MaskPhone(string phone)
+    {
+        if (phone.Length <= 4) return "****";
+        return $"{"*".PadLeft(phone.Length - 4, '*')}{phone[^4..]}";
     }
 
     private static UserDto MapToUserDto(User user) => new()
