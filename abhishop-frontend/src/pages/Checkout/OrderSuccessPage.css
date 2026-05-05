@@ -1,0 +1,14 @@
+.success-page { min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.success-card { max-width: 500px; width: 100%; padding: 40px; text-align: center; border: 1px solid var(--border); }
+.success-icon { margin-bottom: 16px; }
+.success-card h1 { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+.success-msg { font-size: 15px; color: var(--text-secondary); margin-bottom: 24px; }
+.order-info { background: var(--bg-secondary); border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: left; }
+.order-number { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.order-number .label { display: block; font-size: 12px; color: var(--text-secondary); }
+.order-number strong { font-size: 16px; }
+.order-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.order-meta > div { display: flex; flex-direction: column; gap: 4px; }
+.order-meta span { font-size: 12px; color: var(--text-secondary); }
+.order-meta strong { font-size: 14px; }
+.success-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
