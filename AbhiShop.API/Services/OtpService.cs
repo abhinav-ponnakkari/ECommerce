@@ -82,6 +82,54 @@ public class OtpService : IOtpService
         return Task.CompletedTask;
     }
 
+    public async Task<string> GenerateAndSaveForEmailAsync(string email)
+    {
+        var recentCount = await _context.OtpCodes
+            .CountAsync(o => o.Email == email && o.Channel == OtpChannel.Email
+                          && o.CreatedAt >= DateTime.UtcNow.AddHours(-1));
+
+        if (recentCount >= MaxAttemptsPerHour)
+            throw new InvalidOperationException("Too many OTP requests. Please try again later.");
+
+        var previous = await _context.OtpCodes
+            .Where(o => o.Email == email && o.Channel == OtpChannel.Email
+                     && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync();
+        previous.ForEach(o => o.IsUsed = true);
+
+        var code = GenerateCode();
+
+        _context.OtpCodes.Add(new OtpCode
+        {
+            Email = email,
+            Channel = OtpChannel.Email,
+            Code = code,
+            ExpiresAt = DateTime.UtcNow.AddSeconds(OtpValidSeconds),
+        });
+
+        await _context.SaveChangesAsync();
+        return code;
+    }
+
+    public async Task<bool> VerifyForEmailAsync(string email, string code)
+    {
+        var otp = await _context.OtpCodes
+            .Where(o =>
+                o.Email == email &&
+                o.Channel == OtpChannel.Email &&
+                o.Code == code &&
+                !o.IsUsed &&
+                o.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(o => o.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (otp == null) return false;
+
+        otp.IsUsed = true;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     // ── helpers ─────────────────────────────────────────────────────────
     private static string GenerateCode()
     {

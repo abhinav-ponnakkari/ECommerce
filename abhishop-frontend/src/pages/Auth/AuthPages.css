@@ -231,6 +231,36 @@
 .auth-footer a { color: var(--primary); font-weight: 600; }
 .auth-footer a:hover { text-decoration: underline; }
 
+/* ── email mode sub-toggle (Password | Email OTP) ────────────────────── */
+.email-mode-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.mode-btn:hover { color: var(--primary); border-color: var(--primary); background: #fff8f5; }
+.mode-btn.active {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: #fff8f5;
+  font-weight: 600;
+}
+
 /* ── OTP section ──────────────────────────────────────────────────── */
 .otp-section {
   display: flex;

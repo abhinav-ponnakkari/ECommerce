@@ -5,4 +5,7 @@ public interface IOtpService
     Task<string> GenerateAndSaveAsync(string phoneNumber);
     Task<bool> VerifyAsync(string phoneNumber, string code);
     Task SendSmsAsync(string phoneNumber, string code);
+
+    Task<string> GenerateAndSaveForEmailAsync(string email);
+    Task<bool> VerifyForEmailAsync(string email, string code);
 }

@@ -16,14 +16,16 @@ public class AuthController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ITokenService _tokenService;
     private readonly IOtpService _otpService;
+    private readonly IEmailService _emailService;
     private readonly IWebHostEnvironment _env;
 
     public AuthController(AppDbContext context, ITokenService tokenService,
-        IOtpService otpService, IWebHostEnvironment env)
+        IOtpService otpService, IEmailService emailService, IWebHostEnvironment env)
     {
         _context = context;
         _tokenService = tokenService;
         _otpService = otpService;
+        _emailService = emailService;
         _env = env;
     }
 
@@ -177,12 +179,87 @@ public class AuthController : ControllerBase
         });
     }
 
+    // ── Email OTP ─────────────────────────────────────────────────────────
+
+    [HttpPost("send-email-otp")]
+    public async Task<ActionResult<SendOtpResponseDto>> SendEmailOtp(SendEmailOtpDto dto)
+    {
+        var email = dto.Email.Trim().ToLower();
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null)
+            return NotFound(new { message = "No account found with this email. Please register first." });
+
+        if (!user.IsActive)
+            return Unauthorized(new { message = "Your account has been deactivated." });
+
+        try
+        {
+            var code = await _otpService.GenerateAndSaveForEmailAsync(email);
+
+            if (_env.IsDevelopment())
+            {
+                // Skip actual SMTP in dev — return code directly
+                return Ok(new SendOtpResponseDto
+                {
+                    Success = true,
+                    Message = $"OTP sent to {MaskEmail(email)}",
+                    ExpiresInSeconds = 120,
+                    DevOtp = code,
+                });
+            }
+
+            await _emailService.SendOtpEmailAsync(email, user.FirstName, code);
+
+            return Ok(new SendOtpResponseDto
+            {
+                Success = true,
+                Message = $"OTP sent to {MaskEmail(email)}",
+                ExpiresInSeconds = 120,
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Failed to send email. Please try again.", detail = ex.Message });
+        }
+    }
+
+    [HttpPost("verify-email-otp")]
+    public async Task<ActionResult<AuthResponseDto>> VerifyEmailOtp(VerifyEmailOtpDto dto)
+    {
+        var email = dto.Email.Trim().ToLower();
+        var valid = await _otpService.VerifyForEmailAsync(email, dto.Code.Trim());
+
+        if (!valid)
+            return BadRequest(new { message = "Invalid or expired OTP. Please try again." });
+
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (user == null) return NotFound();
+
+        return Ok(new AuthResponseDto
+        {
+            Token = _tokenService.GenerateToken(user),
+            User = MapToUserDto(user)
+        });
+    }
+
     // ─────────────────────────────────────────────────────────────────────
 
     private static string MaskPhone(string phone)
     {
         if (phone.Length <= 4) return "****";
         return $"{"*".PadLeft(phone.Length - 4, '*')}{phone[^4..]}";
+    }
+
+    private static string MaskEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        if (at <= 2) return $"**{email[at..]}";
+        return $"{email[0]}{"*".PadLeft(at - 1, '*')}{email[at..]}";
     }
 
     private static UserDto MapToUserDto(User user) => new()
