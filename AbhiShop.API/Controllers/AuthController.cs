@@ -51,13 +51,18 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email.ToLower());
+        var loginId = dto.LoginId.Trim();
+
+        // Match by email (contains @) or by phone number
+        var user = loginId.Contains('@')
+            ? await _context.Users.FirstOrDefaultAsync(u => u.Email == loginId.ToLower())
+            : await _context.Users.FirstOrDefaultAsync(u => u.PhoneNumber == loginId);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return Unauthorized(new { message = "Invalid email or password." });
+            return Unauthorized(new { message = "Invalid credentials. Please check your email/mobile and password." });
 
         if (!user.IsActive)
-            return Unauthorized(new { message = "Account has been deactivated." });
+            return Unauthorized(new { message = "Your account has been deactivated. Please contact support." });
 
         return Ok(new AuthResponseDto
         {

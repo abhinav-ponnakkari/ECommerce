@@ -29,11 +29,12 @@ function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card card" style={{ maxWidth: '480px' }}>
-        <div className="auth-logo">
+      <div className="auth-card register-card card">
+        <Link to="/" className="auth-logo">
           <span className="logo-abhi">Abhi</span><span className="logo-shop">Shop</span>
-        </div>
+        </Link>
         <h1 className="auth-title">Create Account</h1>
+        <p className="auth-subtitle">Join millions of happy shoppers</p>
 
         {error && <div className="auth-error">{error}</div>}
 

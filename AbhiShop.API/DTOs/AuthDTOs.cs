@@ -21,8 +21,9 @@ public class RegisterDto
 
 public class LoginDto
 {
-    [Required, EmailAddress]
-    public string Email { get; set; } = string.Empty;
+    // Accepts either an email address or a phone number
+    [Required]
+    public string LoginId { get; set; } = string.Empty;
 
     [Required]
     public string Password { get; set; } = string.Empty;
