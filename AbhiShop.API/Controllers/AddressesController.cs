@@ -85,6 +85,44 @@ public class AddressesController : ControllerBase
         });
     }
 
+    [HttpPut("{id}")]
+    public async Task<ActionResult<AddressDto>> UpdateAddress(int id, CreateAddressDto dto)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var address = await _context.Addresses.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+        if (address == null) return NotFound();
+
+        if (dto.IsDefault)
+        {
+            var existing = await _context.Addresses.Where(a => a.UserId == userId && a.IsDefault && a.Id != id).ToListAsync();
+            existing.ForEach(a => a.IsDefault = false);
+        }
+
+        address.FullName = dto.FullName;
+        address.Street = dto.Street;
+        address.City = dto.City;
+        address.State = dto.State;
+        address.ZipCode = dto.ZipCode;
+        address.Country = dto.Country;
+        address.PhoneNumber = dto.PhoneNumber;
+        address.IsDefault = dto.IsDefault;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new AddressDto
+        {
+            Id = address.Id,
+            FullName = address.FullName,
+            Street = address.Street,
+            City = address.City,
+            State = address.State,
+            ZipCode = address.ZipCode,
+            Country = address.Country,
+            PhoneNumber = address.PhoneNumber,
+            IsDefault = address.IsDefault
+        });
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAddress(int id)
     {

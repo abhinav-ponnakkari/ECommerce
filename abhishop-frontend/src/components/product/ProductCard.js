@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiShoppingCart, FiStar } from 'react-icons/fi';
+import { FiShoppingCart, FiStar, FiHeart } from 'react-icons/fi';
 import { addToCart } from '../../store/slices/cartSlice';
+import { toggleWishlist } from '../../store/slices/wishlistSlice';
 import './ProductCard.css';
 
 function StarRating({ rating, count }) {
@@ -25,6 +26,8 @@ function StarRating({ rating, count }) {
 function ProductCard({ product }) {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { productIds: wishlistIds } = useSelector((state) => state.wishlist);
+  const isWishlisted = wishlistIds.includes(product.id);
 
   const effectivePrice = product.discountPrice || product.price;
   const hasDiscount = product.discountPrice && product.discountPrice < product.price;
@@ -33,11 +36,15 @@ function ProductCard({ product }) {
   const handleAddToCart = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) {
-      window.location.href = '/login';
-      return;
-    }
+    if (!user) { window.location.href = '/login'; return; }
     dispatch(addToCart({ productId: product.id, quantity: 1 }));
+  };
+
+  const handleWishlist = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { window.location.href = '/login'; return; }
+    dispatch(toggleWishlist(product.id));
   };
 
   return (
@@ -47,6 +54,13 @@ function ProductCard({ product }) {
         {hasDiscount && <span className="discount-badge">-{discountPct}%</span>}
         {product.stockQuantity === 0 && <div className="out-of-stock-overlay">Out of Stock</div>}
         {product.isFeatured && <span className="featured-badge">Featured</span>}
+        <button
+          className={`product-wishlist-btn ${isWishlisted ? 'wishlisted' : ''}`}
+          onClick={handleWishlist}
+          title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <FiHeart size={16} fill={isWishlisted ? 'currentColor' : 'none'} />
+        </button>
       </div>
       <div className="product-info">
         <p className="product-brand">{product.brand}</p>

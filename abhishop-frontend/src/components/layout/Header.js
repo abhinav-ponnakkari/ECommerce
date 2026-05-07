@@ -3,21 +3,24 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   FiShoppingCart, FiSearch, FiUser, FiMenu, FiX,
-  FiChevronDown, FiPackage, FiLogOut, FiSettings
+  FiChevronDown, FiPackage, FiLogOut, FiSettings,
+  FiHeart, FiMapPin, FiShield, FiZap
 } from 'react-icons/fi';
 import { logout } from '../../store/slices/authSlice';
 import { resetCart } from '../../store/slices/cartSlice';
+import { resetWishlist } from '../../store/slices/wishlistSlice';
 import './Header.css';
 
 function Header() {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const dispatch  = useDispatch();
+  const navigate  = useNavigate();
+  const { user }  = useSelector((state) => state.auth);
   const { itemCount } = useSelector((state) => state.cart);
+  const { productIds: wishlistIds } = useSelector((state) => state.wishlist);
   const { items: categories } = useSelector((state) => state.categories);
 
-  const [search, setSearch] = useState('');
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search,       setSearch]       = useState('');
+  const [mobileOpen,   setMobileOpen]   = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
 
@@ -33,6 +36,7 @@ function Header() {
   const handleLogout = () => {
     dispatch(logout());
     dispatch(resetCart());
+    dispatch(resetWishlist());
     setUserMenuOpen(false);
     navigate('/');
   };
@@ -79,6 +83,21 @@ function Header() {
           </form>
 
           <div className="header-actions">
+            {/* Wishlist */}
+            {user && (
+              <Link to="/wishlist" className="header-icon-btn" title="Wishlist">
+                <div style={{ position: 'relative' }}>
+                  <FiHeart size={22} />
+                  {wishlistIds.length > 0 && (
+                    <span className="cart-badge" style={{ background: '#e74a3b' }}>
+                      {wishlistIds.length > 99 ? '99+' : wishlistIds.length}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            )}
+
+            {/* User menu */}
             {user ? (
               <div className="user-menu-wrapper" onMouseLeave={() => setUserMenuOpen(false)}>
                 <button className="header-btn" onMouseEnter={() => setUserMenuOpen(true)}>
@@ -100,6 +119,21 @@ function Header() {
                     <Link to="/orders" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>
                       <FiPackage size={15} /> My Orders
                     </Link>
+                    <Link to="/wishlist" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                      <FiHeart size={15} /> Wishlist
+                      {wishlistIds.length > 0 && <span className="badge badge-primary" style={{ marginLeft: 'auto', fontSize: 10 }}>{wishlistIds.length}</span>}
+                    </Link>
+                    <Link to="/addresses" className="dropdown-item" onClick={() => setUserMenuOpen(false)}>
+                      <FiMapPin size={15} /> My Addresses
+                    </Link>
+                    {user.role === 'Admin' && (
+                      <>
+                        <hr className="dropdown-divider" />
+                        <Link to="/admin" className="dropdown-item" style={{ color: 'var(--primary)', fontWeight: 600 }} onClick={() => setUserMenuOpen(false)}>
+                          <FiShield size={15} /> Admin Panel
+                        </Link>
+                      </>
+                    )}
                     <hr className="dropdown-divider" />
                     <button className="dropdown-item dropdown-signout" onClick={handleLogout}>
                       <FiLogOut size={15} /> Sign Out
@@ -132,18 +166,20 @@ function Header() {
         </div>
       </div>
 
+      {/* Nav bar */}
       <nav className="header-nav">
         <div className="container">
           <Link to="/products" className="nav-link">All Products</Link>
-          {categories.slice(0, 6).map(cat => (
+          {categories.slice(0, 5).map(cat => (
             <Link key={cat.id} to={`/products?categoryId=${cat.id}`} className="nav-link">
               {cat.name}
             </Link>
           ))}
-          <Link to="/products?isFeatured=true" className="nav-link nav-link-deals">Today's Deals</Link>
+          <Link to="/deals" className="nav-link nav-link-deals"><FiZap size={13} /> Today's Deals</Link>
         </div>
       </nav>
 
+      {/* Mobile nav */}
       {mobileOpen && (
         <div className="mobile-nav">
           <form className="mobile-search" onSubmit={handleSearch}>
@@ -160,6 +196,7 @@ function Header() {
           </form>
           <Link to="/" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Home</Link>
           <Link to="/products" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>All Products</Link>
+          <Link to="/deals" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Today's Deals</Link>
           {categories.map(cat => (
             <Link key={cat.id} to={`/products?categoryId=${cat.id}`} className="mobile-nav-link" onClick={() => setMobileOpen(false)}>
               {cat.name}
@@ -168,7 +205,10 @@ function Header() {
           {user ? (
             <>
               <Link to="/orders" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>My Orders</Link>
+              <Link to="/wishlist" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Wishlist</Link>
+              <Link to="/addresses" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Addresses</Link>
               <Link to="/profile" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Profile</Link>
+              {user.role === 'Admin' && <Link to="/admin" className="mobile-nav-link" onClick={() => setMobileOpen(false)}>Admin Panel</Link>}
               <button className="mobile-nav-link mobile-signout" onClick={() => { handleLogout(); setMobileOpen(false); }}>Sign Out</button>
             </>
           ) : (

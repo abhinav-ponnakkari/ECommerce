@@ -1,0 +1,62 @@
+.addr-container { max-width: 900px; }
+
+.addr-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+}
+
+.addr-form-card { padding: 24px; margin-bottom: 24px; }
+.addr-form-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--text-primary); }
+.addr-form { display: flex; flex-direction: column; gap: 16px; }
+
+.addr-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .addr-form-row { grid-template-columns: 1fr; } }
+
+.addr-default-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; color: var(--text-secondary); cursor: pointer;
+}
+.addr-default-row input { accent-color: var(--primary); }
+
+.addr-form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 8px; }
+
+.addr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+.addr-card {
+  padding: 20px;
+  position: relative;
+  border: 2px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.addr-card:hover { box-shadow: var(--shadow-md); }
+.addr-card--default { border-color: var(--primary); }
+
+.addr-default-badge {
+  position: absolute; top: 12px; right: 12px;
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #fff8f5; color: var(--primary);
+  border: 1px solid var(--primary);
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: var(--radius-full);
+}
+
+.addr-icon { color: var(--primary); margin-bottom: 12px; }
+.addr-details { margin-bottom: 16px; }
+.addr-name { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+.addr-line { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.addr-phone { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+.addr-actions { display: flex; gap: 8px; }
+.addr-delete-btn { color: var(--error) !important; border-color: var(--error) !important; }
+.addr-delete-btn:hover { background: #fde8e8 !important; }
+
+.addr-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 60px 24px; text-align: center;
+}
+.addr-empty-icon { color: #ddd; margin-bottom: 8px; }
+.addr-empty h3 { font-size: 20px; font-weight: 700; }
+.addr-empty p { color: var(--text-secondary); }
+
+.addr-skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.addr-skeleton { height: 180px; border-radius: var(--radius-md); }

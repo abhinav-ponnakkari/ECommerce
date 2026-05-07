@@ -13,21 +13,23 @@ function Footer() {
           <div className="footer-col">
             <h4>Get to Know Us</h4>
             <Link to="/about">About AbhiShop</Link>
-            <Link to="/careers">Careers</Link>
-            <Link to="/press">Press Releases</Link>
+            <Link to="/contact">Contact Us</Link>
+            <Link to="/help">Help Center</Link>
           </div>
           <div className="footer-col">
             <h4>Shop With Us</h4>
             <Link to="/products">All Products</Link>
-            <Link to="/products?isFeatured=true">Today's Deals</Link>
+            <Link to="/deals">Today's Deals</Link>
             <Link to="/cart">Your Cart</Link>
             <Link to="/orders">Track Orders</Link>
+            <Link to="/wishlist">Wishlist</Link>
           </div>
           <div className="footer-col">
             <h4>Customer Service</h4>
             <Link to="/help">Help Center</Link>
-            <Link to="/returns">Returns & Refunds</Link>
+            <Link to="/help#returns">Returns &amp; Refunds</Link>
             <Link to="/contact">Contact Us</Link>
+            <Link to="/addresses">My Addresses</Link>
           </div>
           <div className="footer-col">
             <h4>Connect With Us</h4>

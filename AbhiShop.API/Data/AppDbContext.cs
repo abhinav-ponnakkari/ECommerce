@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
